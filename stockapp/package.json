@@ -1,0 +1,27 @@
+{
+  "name": "dalal-street-intel",
+  "version": "1.0.0",
+  "description": "Indian Stock Market Analysis Terminal - Full Stack",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js"
+  },
+  "keywords": [
+    "indian-stocks",
+    "nse",
+    "bse",
+    "mutual-funds",
+    "stock-analysis"
+  ],
+  "author": "Ibrahim",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.x",
+    "compression": "^1.x",
+    "cors": "^2.8.6",
+    "dotenv": "^16.x",
+    "express": "^4.22.1",
+    "yahoo-finance2": "^3.14.0"
+  }
+}
