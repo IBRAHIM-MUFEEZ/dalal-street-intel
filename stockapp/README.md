@@ -1,142 +1,149 @@
-# 🇮🇳 DALAL STREET INTEL
-## Indian Market Intelligence Terminal — Full Stack
+# 🇮🇳 DALAL STREET INTEL — Groww Quant Intelligence Dashboard v3.0
 
-A complete stock analysis web application for Indian markets (NSE/BSE) with real-time data via Alpha Vantage API.
+**Indian Market Intelligence Terminal** — Full Stack Node.js + Vanilla JS
 
 ---
 
 ## 🚀 QUICK START
 
-### Prerequisites
-- Node.js v16+ installed
+```bash
+cd stockapp
+node backend/server.js
+# Open: http://localhost:3000
+```
 
-### Installation & Run
+---
+
+## ✅ DOES IT WORK WHEN MARKET IS CLOSED?
+
+**YES — 100% functional 24×7.**
+
+The entire analysis pipeline runs on **historical candles** (1-day OHLC bars) which are available round the clock. Live LTP is only a thin overlay when market is open. When closed, the last candle's close = effective current price.
+
+All 30 formulas, DCF, MPT, VaR, Options, Tax — everything works after hours.
+
+---
+
+## 📡 GROWW API STATUS
+
+Your key **"Ibrahim"** is **Approved** on the dashboard.
+
+### Why 403 on data endpoints?
+
+The token has `role: auth-totp` which means it was generated via TOTP flow. Groww's data endpoints (LTP, Historical, Holdings) require a **Trading API subscription** to be active on your account.
+
+### To enable live Groww data:
+
+1. Go to **[groww.in/trade-api](https://groww.in/trade-api)** → Purchase/Activate Trading API subscription
+2. After activation, regenerate your API key at **[groww.in/trade-api/api-keys](https://groww.in/trade-api/api-keys)**
+3. Set the new token:
 
 ```bash
-# 1. Navigate to the backend folder
-cd backend
+# PowerShell
+Invoke-RestMethod "http://localhost:3000/api/groww/token" `
+  -Method POST -ContentType "application/json" `
+  -Body '{"access_token":"YOUR_NEW_TOKEN"}'
 
-# 2. Install dependencies (first time only)
-npm install
-
-# 3. Start the server
-node server.js
-
-# 4. Open browser at:
-http://localhost:3000
+# curl
+curl -X POST http://localhost:3000/api/groww/token \
+  -H "Content-Type: application/json" \
+  -d '{"access_token":"YOUR_NEW_TOKEN"}'
 ```
+
+4. Verify: `curl http://localhost:3000/api/health` → should show `"data_source":"groww_live"`
+
+### Until then — static data works perfectly
+
+All analysis, all 30 formulas, all 8 quant engines work on static data with realistic price simulation.
 
 ---
 
-## 📁 FOLDER STRUCTURE
+## 🔢 30 FORMULAS IMPLEMENTED
 
-```
-stockapp/
-├── backend/
-│   ├── server.js        ← Express server + all API routes
-│   ├── stocks-data.js   ← NSE/BSE stocks master database (30+ stocks)
-│   ├── mf-data.js       ← Mutual funds database (15 popular funds)
-│   ├── db.json          ← Auto-created: watchlist, portfolio, alerts
-│   └── package.json
-└── frontend/
-    └── public/
-        └── index.html   ← Complete single-page frontend
-```
+| # | Formula | Used In |
+|---|---------|---------|
+| F1 | `Rt = (Pt - Pt-1) / Pt-1` | Daily returns |
+| F2 | `MA(n) = ΣP/n` | SMA 20/50/200 |
+| F3 | `EMA(t) = Pt×k + EMA(t-1)×(1-k), k=2/(n+1)` | EMA 9/12/26 |
+| F4 | `MACD = EMA12-EMA26, Signal = EMA9(MACD)` | MACD histogram |
+| F5 | `RSI = 100-100/(1+RS)` | RSI(14) |
+| F6 | `Momentum = (Pt/Pt-n) - 1` | 63d/21d momentum |
+| F7 | `σ = √(Σ(Ri-μ)²/N)` | Annualised volatility |
+| F8 | `μ = ΣRi/N × 252` | Expected return |
+| F9 | `Sharpe = (Rp-Rf)/σp × √252` | Sharpe + Sortino |
+| F10 | `DD = (Pt - Peak)/Peak` | Max drawdown |
+| F11 | `CAGR = (Vf/Vi)^(1/n) - 1` | CAGR % |
+| F12 | `Rp = Σ(wi × Ri)` | MPT portfolio return |
+| F13 | `σp = √(wᵀΣw)` | MPT portfolio risk |
+| F14 | `σ(x) = 1/(1+e^-x)` | Sigmoid normalisation |
+| F15 | `Sentiment = (TextBlob + Keyword)/2` | NLP sentiment |
+| F16 | `Impact = Avg×(1+\|Avg\|)×5` | NLP impact score |
+| F17 | `Confidence = 1 - Variance` | Tech confidence |
+| F18 | `Kelly = p - ((1-p)/R)` | Kelly fraction |
+| F19 | `Cov(X,Y) = Σ[(Xi-μx)(Yi-μy)]/N` | MPT covariance |
+| F20 | `y = β0 + β1x (OLS)` | Linear regression |
+| F21 | `Positive→+score, Negative→-score` | FinBERT logic |
+| F22 | `FinalScore = Tech + ML + News` | AI signal score |
+| F23 | `weights = 1/n` | Equal weights |
+| F24 | `PortReturn = weights · mean_returns` | Portfolio return |
+| F25 | `PortRisk = √(wᵀΣw)` | Portfolio risk |
+| F26 | `PredReturn = OLS.predict(features)` | ML prediction |
+| F27 | `NLPConf = 1 - sentiment_variance` | NLP confidence |
+| F28 | `AvgSent = Σsentiments/n` | Batch sentiment |
+| F29 | `Impact = avg×(1+\|avg\|)` | Non-linear impact |
+| F30 | `≥4→STRONG BUY, ≥2→BUY, ≤-4→STRONG SELL` | Trading signal |
 
 ---
 
-## ✨ FEATURES
+## 📊 17 VIEWS
 
-### 📊 Dashboard
-- Live Nifty 50, Sensex, Bank Nifty, Nifty IT index cards
-- Top Gainers & Losers
-- Quick watchlist & portfolio summary
-
-### 🔍 Stock / MF Analyser
-- **Real-time data** via Alpha Vantage API (BSE quotes)
-- **Autocomplete search** with 80+ stocks and 15 mutual funds
-- Price history chart (1M / 3M / 6M / 1Y)
-- **Valuation Models:**
-  - Graham Number: √(22.5 × EPS × Book Value)
-  - Benjamin Graham Revised Formula: EPS × (8.5 + 2g) × 4.4 / Y
-  - Peter Lynch Fair Value: EPS × Growth Rate
-  - DCF (10yr + Terminal, WACC 12%)
-  - Earnings Power Value
-  - PEG Ratio
-- Fundamental ratios (P/E, P/B, ROE, D/E, margins...)
-- Technical levels (50d MA, 200d MA, 52-week range)
-- AI-computed overall score + BUY/HOLD/SELL verdict
-
-### 📋 Stock Screener
-- Filter by sector, P/E, ROE, Dividend Yield, Debt/Equity, Market Cap
-- Click any result to analyse instantly
-
-### 💼 Mutual Fund Explorer
-- Filter by category, 3Y CAGR, expense ratio
-- Detailed fund cards with NAV, AUM, returns, Sharpe ratio
-
-### 🧮 Valuation Calculator
-- Manual input of EPS, Book Value, Growth Rate
-- Server-side computation of all 5 valuation models
-- Margin of Safety calculation
-
-### ⭐ Watchlist (Persisted)
-- Add/remove stocks and funds
-- Live prices shown
-
-### 💰 Portfolio Tracker (Persisted)
-- Track holdings with buy price and quantity
-- Live P&L calculation
-- Total invested vs current value
-
-### 🔔 Price Alerts (Persisted)
-- Set above/below alerts for any ticker
-
-### 📚 Glossary
-- 16 key investment terms explained
+| View | Description |
+|------|-------------|
+| 📊 Dashboard | 5 indices, gainers/losers, watchlist, portfolio |
+| 🏆 Top 10 Picks | Expert-scored top 10 Stocks/MFs/ETFs/Bonds |
+| 📈 Stock Analyser | Full 30-formula hybrid analysis + chart |
+| 🏷️ ETF Explorer | 12 NSE ETFs with tracking error, liquidity |
+| 🏦 MF Explorer | 15 mutual funds with CAGR, expense ratio |
+| 🏛️ Bond Explorer | 10 bonds/debt instruments with YTM, rating |
+| 📋 Screener | Filter 31 stocks by P/E, ROE, D/E, dividend |
+| 📐 DCF Valuation | CAPM + WACC + Three-Stage DCF |
+| 🎯 Portfolio MPT | Monte Carlo efficient frontier |
+| ⚠️ VaR Engine | Var-Cov, Historical Sim, Monte Carlo |
+| 🏛️ Options/BSM | Black-Scholes + Δ Γ Θ ν ρ + payoff diagrams |
+| 💸 Tax Engine | India 2024-2026 STCG/LTCG + harvesting |
+| 🧮 Valuation Calc | Graham Number, DCF, Peter Lynch, EPV, PEG |
+| ⭐ Watchlist | Add/remove, live prices |
+| 💰 Portfolio | Holdings tracker with live P&L |
+| 🔔 Alerts | Price alerts above/below |
+| 📚 Glossary | 24 terms + 30 formula reference |
 
 ---
 
 ## 🔌 API ENDPOINTS
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/health | Server health check |
-| GET | /api/search?q=QUERY | Search stocks/MFs |
-| GET | /api/quote/:ticker | Real-time quote (Alpha Vantage) |
-| GET | /api/history/:ticker?period=3m | Price history |
-| GET | /api/fundamentals/:ticker | Company fundamentals |
-| GET | /api/market/indices | Nifty/Sensex data |
-| GET | /api/market/movers | Top gainers/losers |
-| POST | /api/calc/valuations | Server-side valuation calc |
-| GET/POST/DELETE | /api/watchlist | Watchlist CRUD |
-| GET/POST/DELETE | /api/portfolio | Portfolio CRUD |
-| GET/POST/DELETE | /api/alerts | Price alerts CRUD |
-
----
-
-## 📡 DATA SOURCES
-
-| Source | Type | Used For |
-|--------|------|---------|
-| **Alpha Vantage** (free API) | Real-time | Live quotes, fundamentals, price history |
-| **Static DB** (built-in) | Fallback | 30+ NSE/BSE stocks with fundamentals |
-| **AMFI data** (built-in) | Static | 15 major mutual funds |
-| **Server calculations** | Computed | Graham Number, DCF, Peter Lynch, PEG |
-
-**Alpha Vantage Free Tier:** 25 requests/day, 5 requests/minute.
-When limit is hit, app seamlessly falls back to static data with simulated price variance.
-
----
-
-## 🔑 API KEY
-
-Alpha Vantage key is pre-configured: `EUH7SUBDOR848MOR`
-
-To change it, edit line 8 in `backend/server.js`:
-```js
-const AV_KEY = 'YOUR_NEW_KEY';
-```
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/health` | Server health + Groww API status |
+| `GET /api/groww/status` | Detailed Groww connection status |
+| `POST /api/groww/token` | Set Groww access token |
+| `GET /api/quant/analyze/:ticker?news=h1\|h2` | Full 30-formula hybrid analysis |
+| `GET /api/quant/formulas` | All 30 formula reference |
+| `POST /api/quant/batch` | Batch analysis for multiple symbols |
+| `POST /api/quant/options` | Black-Scholes pricing + Greeks |
+| `POST /api/quant/payoff` | Options strategy payoff diagram |
+| `POST /api/quant/dcf` | Three-stage DCF + CAPM + WACC |
+| `POST /api/quant/mpt` | Efficient frontier (Monte Carlo) |
+| `POST /api/quant/var` | VaR (3 methods) |
+| `POST /api/quant/tax` | Tax calculation |
+| `POST /api/quant/tax/harvest` | Tax-loss harvesting |
+| `GET /api/market/indices` | NIFTY/SENSEX/BANK/IT/MIDCAP |
+| `GET /api/market/top10` | Expert-scored top 10 |
+| `GET /api/market/movers` | Top gainers/losers |
+| `GET /api/search?q=` | Search all instruments |
+| `GET /api/quote/:ticker` | Live/static price quote |
+| `GET /api/history/:ticker?period=3m` | Historical candles |
+| `GET /api/fundamentals/:ticker` | Company fundamentals |
+| `POST /api/calc/valuations` | Graham/DCF/Lynch/EPV/PEG |
 
 ---
 
